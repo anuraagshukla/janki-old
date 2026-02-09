@@ -1,143 +1,139 @@
-import { useEffect, useState } from "react";
-import API from "../api/api";
 import {
   Box,
-  Container,
-  Typography,
-  CircularProgress,
+  Grid,
   Card,
+  CardMedia,
   CardContent,
+  Typography,
   Button,
+  Chip,
 } from "@mui/material";
-import { Link } from "react-router-dom";
 
-
-const FALLBACK_IMAGE = new URL("/no-image.png", import.meta.url).href;
-
-const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchProducts = async () => {
-    try {
-      const { data } = await API.get("/products/all"); // 👈 YOUR API
-      setProducts(data);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  if (loading) {
-    return (
-      <CircularProgress
-        sx={{ display: "block", mx: "auto", mt: 12 }}
-      />
-    );
-  }
-
+const Products = ({ products = [] }) => {
   return (
-    <Box sx={{ backgroundColor: "background.default", minHeight: "100vh", py: 6 }}>
-      <Container>
-        <Typography variant="h4" fontWeight={700} mb={1}>
-          All Products
-        </Typography>
-        <Typography color="text.secondary" mb={4}>
-          Browse our complete collection
-        </Typography>
+    <Box
+      sx={{
+        px: { xs: 1.5, sm: 3, md: 6 },
+        py: { xs: 3, md: 5 },
+      }}
+    >
+      {/* Page Title */}
+      <Typography
+        variant="h5"
+        sx={{
+          fontWeight: 600,
+          mb: { xs: 2.5, md: 4 },
+        }}
+      >
+        Shop by Category
+      </Typography>
 
-        {products.length === 0 ? (
-          <Typography>No products available</Typography>
-        ) : (
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "repeat(1, 1fr)",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(4, 1fr)",
-              },
-              gap: 4,
-            }}
-          >
-            {products.map((p) => (
-              <Card
-                key={p._id}
+      {/* Product Grid */}
+      <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+        {products.map((product) => (
+          <Grid item xs={6} sm={6} md={3} key={product.id}>
+            <Card
+              sx={{
+                height: "100%",
+                borderRadius: 4,
+                position: "relative", // 🔥 badge positioning
+                transition:
+                  "transform 0.2s ease, box-shadow 0.2s ease",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  boxShadow:
+                    "0 14px 32px rgba(0,0,0,0.08)",
+                },
+              }}
+            >
+              {/* 🔖 BADGE */}
+              {(product.isNew || product.isBestSeller) && (
+                <Chip
+                  label={
+                    product.isBestSeller ? "BESTSELLER" : "NEW"
+                  }
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    left: 10,
+                    fontWeight: 600,
+                    fontSize: "0.7rem",
+                    backgroundColor: product.isBestSeller
+                      ? "#166534" // dark green
+                      : "#F59E0B", // amber
+                    color: "#FFFFFF",
+                    zIndex: 1,
+                  }}
+                />
+              )}
+
+              {/* IMAGE SECTION */}
+              <Box
                 sx={{
-                  height: "100%",
+                  backgroundColor: "#F9FAFB",
                   display: "flex",
-                  flexDirection: "column",
-                  borderRadius: 3,
-                  transition: "0.3s",
-                  "&:hover": {
-                    transform: "translateY(-5px)",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                  },
+                  justifyContent: "center",
+                  alignItems: "center",
+                  py: { xs: 2, sm: 3 },
                 }}
               >
-                {/* Changed: Image */}
-                <Box
+                <CardMedia
+                  component="img"
+                  image={product.image}
+                  alt={product.name}
                   sx={{
-                    height: 200,
-                    backgroundColor: "#F9FAFB",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    width: { xs: 90, sm: 120 },
+                    height: { xs: 140, sm: 200 },
+                    objectFit: "contain",
+                  }}
+                />
+              </Box>
+
+              {/* CONTENT */}
+              <CardContent
+                sx={{
+                  textAlign: "center",
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 2, sm: 2.5 },
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: { xs: "0.9rem", sm: "1rem" },
                   }}
                 >
-                  <img
-                    src={p.image || FALLBACK_IMAGE}
-                    alt={p.title}
-                    style={{
-                      maxHeight: "100%",
-                      maxWidth: "100%",
-                      objectFit: "contain",
-                    }}
-                    onError={(e) => {
-                      if (e.currentTarget.src !== FALLBACK_IMAGE) {
-                        e.currentTarget.src = FALLBACK_IMAGE;
-                      }
-                    }}
-                  />
-                </Box>
+                  {product.name}
+                </Typography>
 
-                {/* Changed: Content */}
-                <CardContent
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5 }}
+                >
+                  ₹{product.price}
+                </Typography>
+
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="contained"
+                  color="primary"
                   sx={{
-                    flexGrow: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    textAlign: "center",
+                    mt: 1.5,
+                    py: 0.8,
+                    fontSize: "0.85rem",
                   }}
                 >
-                  <Typography fontWeight={600} noWrap>
-                    {p.title}
-                  </Typography>
-
-                  <Typography color="text.secondary" mb={2}>
-                    ₹{p.price}
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    component={Link}
-                    to={`/product/${p._id}`}
-                    sx={{ mt: "auto" }}
-                  >
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        )}
-      </Container>
+                  View
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
     </Box>
   );
 };
